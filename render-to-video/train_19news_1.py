@@ -10,9 +10,9 @@ def get_news(n):
 	srcdir2 = srcdir.replace(video,video+'/bm')
 
 	if 'bmold' not in name:
-		cmd = "cd "+rootdir+"/..; matlab -nojvm -nosplash -nodesktop -nodisplay -r \"alpha_blend_news('" + video + "'," + str(start) + "," + str(trainN+testN) + "); quit;\""
+		cmd = "cd "+rootdir+"/..; octave --eval \"pkg load image; alpha_blend_news('" + video + "'," + str(start) + "," + str(trainN+testN) + "); quit;\""
 	else:
-		cmd = "cd "+rootdir+"/..; matlab -nojvm -nosplash -nodesktop -nodisplay -r \"alpha_blend_newsold('" + video + "'," + str(start) + "," + str(trainN+testN) + "); quit;\""
+		cmd = "cd "+rootdir+"/..; octave --eval \"pkg load image; alpha_blend_newsold('" + video + "'," + str(start) + "," + str(trainN+testN) + "); quit;\""
 	os.system(cmd)
 	if not os.path.exists('datasets/list/trainA'):
 		os.makedirs('datasets/list/trainA')

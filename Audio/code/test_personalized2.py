@@ -146,7 +146,7 @@ if __name__ == "__main__":
 	## 4.blend rendered with background
 	srcdir = save_dir
 	#if not os.path.exists(save_dir+'/00000_blend2.png'):
-	cmd = "cd ../results; matlab -nojvm -nosplash -nodesktop -nodisplay -r \"alpha_blend_vbg('" + bgdir + "','" + srcdir + "'); quit;\""
+	cmd = "cd ../results; octave --eval \"pkg load image; alpha_blend_vbg('" + bgdir + "','" + srcdir + "'); quit;\""
 	os.system(cmd)
 
 	## 5.gan
