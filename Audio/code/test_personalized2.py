@@ -140,8 +140,11 @@ if __name__ == "__main__":
 	coef_path1 = rootdir+'19_news/'+person+'/frame%d.mat'%start
 	save_dir = os.path.join(sample_dir,'R_%s_reassign2'%person)
 	relativeframe = 2
-	os.system('CUDA_VISIBLE_DEVICES=%d python render_for_view2.py %s %s %s %d %d %s'%(gpu_id,coeff_dir,coef_path1,save_dir, relativeframe,pingyi,tex2_path))
+	cmd = 'CUDA_VISIBLE_DEVICES=%d python render_for_view2.py %s %s %s %d %d %s'%(gpu_id,coeff_dir,coef_path1,save_dir, relativeframe,pingyi,tex2_path)
+	print(cmd)
+	os.system(cmd)
 
+	# 抽帧处理闭眼
 
 	## 4.blend rendered with background
 	srcdir = save_dir

@@ -44,6 +44,7 @@ def detect_image(imagename, savepath=""):
 def detect_dir(folder):
     for file in sorted(glob.glob(folder+"/*.jpg")+glob.glob(folder+"/*.png")):
         print(file)
+        # 调用dlib识别人脸数据信息，并写入txt文件
         detect_image(imagename=file, savepath=file[:-4]+'.txt')
 
 t1 = time.time()
@@ -57,6 +58,7 @@ postfix = ".png"
 if not os.path.exists(mp4[:-4]):
     os.makedirs(mp4[:-4])
 count = 0
+# 只拆解400帧数据
 while count<400:
     cv2.imwrite("%s/frame%d%s"%(mp4[:-4],count,postfix),image)
     success, image = cap.read()
