@@ -4,7 +4,7 @@ import numpy as np
 import pdb
 from PIL import Image
 import cv2
-
+from organ_swich import swap_orgin
 
 def merge_with_bigbg(audiobasen,n):
 	start=0;ganepoch=60;audioepoch=99
@@ -71,7 +71,24 @@ def merge_with_bigbg(audiobasen,n):
 			center = (t0+int(img1.shape[0]/2),t1+int(img1.shape[1]/2))
 			output = cv2.seamlessClone(img1,img,mask,center,cv2.NORMAL_CLONE)
 			cv2.imwrite(os.path.join(transbigbgdir,'%05d.png'%i),output)
+
+	# 抽取帧处理闭眼睛
 	
+	transbigbgdir_list=glob.glob(os.path.join(transbigbgdir, "*.png"))
+	orig_list=glob.glob(os.path.join("../../Data/" + person,"*.png"))
+	close_img="../../Data/" + person+"/frame32.png"
+	print(f"transbigbgdir: {transbigbgdir}, close: {close_img}")
+	begin = 0
+	orig_pos=0
+	orig_len=len(orig_list)
+
+	for c in range(len(transbigbgdir_list)):
+		out_img = swap_orgin(transbigbgdir_list[c], orig_list[orig_pos], 'eye')
+		cv2.imwrite(transbigbgdir_list[c], out_img)
+		orig_pos=orig_pos+1
+		if orig_pos >= orig_len:
+			orig_pos = 0
+
 	transbigbgdir = os.path.join(sample_dir,'trans_bigbg')
 	video_name = os.path.join(sample_dir,'%s_%swav_results_transbigbg.mp4'%(person,audiobasen))
 	command = 'ffmpeg -loglevel panic -framerate 25  -i ' + transbigbgdir +  '/%05d.png -c:v libx264 -y -vf format=yuv420p ' + video_name

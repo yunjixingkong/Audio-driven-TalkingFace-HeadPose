@@ -144,7 +144,6 @@ if __name__ == "__main__":
 	print(cmd)
 	os.system(cmd)
 
-	# 抽帧处理闭眼
 
 	## 4.blend rendered with background
 	srcdir = save_dir
