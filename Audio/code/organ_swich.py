@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
-from mask import get_organ_mask , get_landmark, left_eye, right_eye, align
+
+from mask import get_organ_mask , get_landmark,get_organ_mask_landmarks, left_eye, right_eye, align
 
 
 def affine_matrix(points1, points2):
@@ -64,16 +65,36 @@ def swap_orgin(source_path, target_path, tag):
     M = affine_matrix(landmark1[align], landmark2[align])
     mask = get_organ_mask(target, tag)
     warp_mask = warp_im(mask, M, source.shape)
-    combined_mask = np.max([get_organ_mask(source, tag), warp_mask],
-                              axis=0)
+    combined_mask = np.max([get_organ_mask(source, tag), warp_mask], axis=0)
     warp_target = warp_im(target, M, source.shape)
+    
+    src_mask=get_organ_mask(source, tag)
+    tmp= 0.2 * src_mask*255 + source
+    source=tmp
+    
     correct_target = correct_colours(source, warp_target, landmark1)
     output_img = source*(1.0-combined_mask) + correct_target*combined_mask
     return output_img
 
+def swap_orgin_data_with_landmark(source, target, landmark1, landmark2, tag):
+    M = affine_matrix(landmark1[align], landmark2[align])
+    mask = get_organ_mask_landmarks(target,landmark2, tag)
+    warp_mask = warp_im(mask, M, source.shape)
+    combined_mask = np.max([get_organ_mask_landmarks(source, landmark1, tag), warp_mask],axis=0)
+    warp_target = warp_im(target, M, source.shape)
+    
+    src_mask=get_organ_mask(source, tag)
+    tmp= 0.2 * src_mask*255 + source
+    source=tmp
+    
+    correct_target = correct_colours(source, warp_target, landmark1)
+    output_img = source*(1.0-combined_mask) + correct_target*combined_mask
+    return output_img
 
 if __name__ == '__main__':
-    path1 = '/root/go/src/local/Open-eyes-using-Pix2Pix/test/close.png'
-    path2 = '/root/go/src/local/Open-eyes-using-Pix2Pix/test/open.png'
-    out_img = swap_orgin(path1, path2, 'eye')
+    # path1 = '/root/go/src/local/Open-eyes-using-Pix2Pix/test/close.png'
+    path1 = '../../Data/1/frame32.png'
+    # path2 = '/root/go/src/local/Open-eyes-using-Pix2Pix/test/open.png'
+    path2 = '../../Data/1/frame1.png'
+    out_img = swap_orgin(path2, path1, 'eye')
     cv2.imwrite('./out.jpg', out_img)

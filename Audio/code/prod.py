@@ -1,13 +1,16 @@
 #encoding:utf-8
-#test different audio
+#pose from short video
 import os
-from choose_bg_gexinghua2_reassign import choose_bg_gexinghua2_reassign2
 from trans_with_bigbg import merge_with_bigbg
 import glob
 import pdb
 from PIL import Image
 import numpy as np
 import sys
+from scipy.io import loadmat,savemat
+import math
+import shutil
+import timeit
 
 def getsingle(srcdir,name,varybg=0,multi=0):
 	srcroot = os.getcwd()
@@ -27,12 +30,79 @@ def getsingle(srcdir,name,varybg=0,multi=0):
 		print(im, file=f1)
 	f1.close()
 
+def dreassign2(video, audio, start, audiomodel='', num=300, debug=0, tran=0):
+	# print(video,audio,start,audiomodel)
+	rootdir = '../..//Deep3DFaceReconstruction/'
+	matdir = os.path.join(rootdir,'output/coeff',video)
+	pngdir = os.path.join(rootdir,'output/render',video)
+	L = 64
+	folder_to_process = '../results/' + audiomodel
+	files = sorted(glob.glob(os.path.join(folder_to_process,'*.npy')))
+	tardir = os.path.join('../results/chosenbg','%s_%s'%(audio,video))
+	if audiomodel != '':
+		tardir = os.path.join('../results/chosenbg','%s_%s_%s'%(audio,video,audiomodel.replace('/','_')))
+	tardir2 = os.path.join(tardir, 'reassign')
+	# print(tardir2)
+	if not os.path.exists(tardir2):
+		os.makedirs(tardir2)
+
+	sucai = np.zeros((num,6))
+	lm_5p = np.zeros((num,2))
+	for i in range(start,start+num):
+		coeff = loadmat(os.path.join(matdir,'frame%d.mat')%i)
+		sucai[i-start,:3] = coeff['coeff'][:,224:227]
+		sucai[i-start,3:] = coeff['coeff'][:,254:257]
+		if tran:
+			lm_5p[i-start,:] = np.mean(coeff['lm_5p'],axis=0)
+	N = len(files)
+	datas = np.zeros((N,3))
+	datasall = np.zeros((N,70))
+	for i in range(N):
+		temp = np.load(files[i])
+		datas[i] = temp[L:L+3]
+		datasall[i] = temp
+	# reassign
+	assigns = [0] * N
+	for i in range(N):
+		p = math.floor(i/num) % 2
+		if p == 0:
+			assigns[i] = i%num
+		else:
+			assigns[i] = num-1-(i%num)
+	# print(assigns)
+	if not os.path.exists(folder_to_process+'/reassign'):
+		os.mkdir(folder_to_process+'/reassign')
+	for i in range(N):
+		if tran == 0:
+			data = datasall[i]
+			data[L:L+6] = sucai[assigns[i]]
+		else:
+			data = np.zeros((L+9))
+			data[:L] = datasall[i,:L]
+			data[L:L+6] = sucai[assigns[i]]
+			data[L+6:L+8] = lm_5p[assigns[i]]
+			data[L+8] = assigns[i]+start
+		savename = os.path.join(folder_to_process,'reassign','%05d.npy'%i)
+		np.save(savename, data)
+		if tran == 0 or tran == 2:
+			shutil.copy(os.path.join(pngdir,'frame%d.png'%(assigns[i]+start)),
+				os.path.join(tardir2,'%05d.png'%i))
+		elif tran == 1:
+			shutil.copy(os.path.join(pngdir,'frame%d_input2.png'%(assigns[i]+start)),
+				os.path.join(tardir2,'%05d.png'%i))
+	
+	if debug:
+		os.system('ffmpeg -loglevel panic -framerate 25 -i ' + tardir2 + '/%05d.png -c:v libx264 -y -vf format=yuv420p ' + tardir2 + '.mp4')
+	
+	return tardir2
+
 gpu_id = 0 if len(sys.argv) < 4 else int(sys.argv[3])
 start=0;ganepoch=60;audioepoch=99
 
 
 audiobasen=sys.argv[1]
 n = int(sys.argv[2])#person id
+output_path=sys.argv[4]
 
 if __name__ == "__main__":
 	person = str(n)
@@ -61,11 +131,10 @@ if __name__ == "__main__":
 		os.system('python atcnet_test1.py --device_ids %d %s --sample_dir %s --in_file %s' % (gpu_id,add,sample_dir,in_file))
 
 	## 2.background matching
-	speed=1
 	num = 300
-	bgdir = choose_bg_gexinghua2_reassign2('19_news/'+person, audiobasen, start, audiomodel, num=num, tran=pingyi, speed=speed)
+	bgdir = dreassign2('19_news/'+person, audiobasen, start, audiomodel, num=num, tran=pingyi)
 
-
+	# pingyi = 2;
 	## 3.render to save_dir
 	coeff_dir = os.path.join(sample_dir,'reassign')
 	rootdir = '../../Deep3DFaceReconstruction/output/coeff/'
@@ -73,14 +142,18 @@ if __name__ == "__main__":
 	coef_path1 = rootdir+'19_news/'+person+'/frame%d.mat'%start
 	save_dir = os.path.join(sample_dir,'R_%s_reassign2'%person)
 	relativeframe = 2
-	os.system('CUDA_VISIBLE_DEVICES=%d python render_for_view2.py %s %s %s %d %d %s'%(gpu_id,coeff_dir,coef_path1,save_dir, relativeframe,pingyi,tex2_path))
-
+	cmd = 'CUDA_VISIBLE_DEVICES=%d python render_for_view2.py %s %s %s %d %d %s'%(gpu_id,coeff_dir,coef_path1,save_dir, relativeframe,pingyi,tex2_path)
+	print(cmd)
+	os.system(cmd)
 
 	## 4.blend rendered with background
+	start_time = timeit.default_timer() 
 	srcdir = save_dir
 	#if not os.path.exists(save_dir+'/00000_blend2.png'):
 	cmd = "cd ../results; octave --eval \"pkg load image; alpha_blend_vbg('" + bgdir + "','" + srcdir + "'); quit;\""
 	os.system(cmd)
+	elapsed = timeit.default_timer() - start_time 
+	print("Time elapsed: ", elapsed)
 
 	## 5.gan
 	sample_dir2 = '../../render-to-video/results/%s/test_%d/images%s/'%(ganmodel,ganepoch,seq)
@@ -99,4 +172,4 @@ if __name__ == "__main__":
 	os.remove(video_name)
 	print('saved to',video_name.replace('.mp4','.mov'))
 
-	merge_with_bigbg(audiobasen,n)
+	merge_with_bigbg(audiobasen,n, output_path)
