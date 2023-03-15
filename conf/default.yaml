@@ -1,0 +1,20 @@
+WebHookURL: "http://192.168.2.103:8888/virtualman/updateTask"
+Nsq:
+  Hosts:
+  - "192.168.2.2:4161" # lookupd http服务地址地址4161，非tcp地址的4160
+  # - "139.159.217.220:4161" # lookupd http服务地址地址4161，非tcp地址的4160
+  AuthSecret: ""
+
+Cache: "/data/online/cache/rabbit/"
+
+Templates:
+  1: "/data/online/paddle-worker/PaddleBoBo/file/input/1.mp4"
+  2: "/data/online/paddle-worker/PaddleBoBo/file/input/2.mp4"
+  3: "/data/online/paddle-worker/PaddleBoBo/file/input/3.mp4"
+
+OSS:
+  Host: "192.168.2.2:9000"
+  AccessKeyID: "minioadmin"
+  SecretKey: "minioadmin"
+  Bucket: "artifact"
+  Secure: False # 是否使用https

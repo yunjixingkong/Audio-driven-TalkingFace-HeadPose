@@ -10,6 +10,7 @@ import sys
 from scipy.io import loadmat,savemat
 import math
 import shutil
+import timeit
 
 def getsingle(srcdir,name,varybg=0,multi=0):
 	srcroot = os.getcwd()
@@ -144,12 +145,14 @@ if __name__ == "__main__":
 	print(cmd)
 	os.system(cmd)
 
-
 	## 4.blend rendered with background
+	start_time = timeit.default_timer() 
 	srcdir = save_dir
 	#if not os.path.exists(save_dir+'/00000_blend2.png'):
 	cmd = "cd ../results; octave --eval \"pkg load image; alpha_blend_vbg('" + bgdir + "','" + srcdir + "'); quit;\""
 	os.system(cmd)
+	elapsed = timeit.default_timer() - start_time 
+	print("Time elapsed: ", elapsed)
 
 	## 5.gan
 	sample_dir2 = '../../render-to-video/results/%s/test_%d/images%s/'%(ganmodel,ganepoch,seq)

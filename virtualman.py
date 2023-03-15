@@ -82,12 +82,18 @@ def process_all(message):
     speed = task_dict.get("Speed")
     
     audio = ""
-    if driverType != TEXT:
-        audio = download_wget(inputAudioUrl, "./Audio/audio") 
+    
+    if len(driverType) == 0:
+        driverType = TEXT
     
     if driverType == TEXT:
         audio=os.path.join("./Audio/audio", f"{taskId}.wav")
         _TTSModel.infer(timbreKey, inputSsml, output=audio) 
+        
+    if driverType != TEXT:
+        audio = download_wget(inputAudioUrl, "./Audio/audio") 
+    
+
     
     inputAudioUrl=unquote(inputAudioUrl) 
     videoStorageS3Url=unquote(videoStorageS3Url) 
@@ -97,11 +103,27 @@ def process_all(message):
     command=f"cd ./Audio/code; python prod.py {os.path.basename(audio)[:-4]} {virtualmanKey} 0 {video}"
     print(command)
     os.system(command)
-    upload_with_put(local_file=video, url=videoStorageS3Url)
+
+    remote_url=""
+    if len(videoStorageS3Url)> 0:
+        upload_with_put(local_file=video, url=videoStorageS3Url)
+        remote_url=videoStorageS3Url
+    else:
+        try:
+            remote_url=_OSSClient.upload(bucket_name=oss.get("Bucket"), object_name=f"{taskId}.mp4", file_path=video)
+            if oss.get("Secure"):
+                remote_url = "https://%s/%s/%s" % (oss.get("Host"), oss.get("Bucket"), f"{taskId}.mp4")
+            else:
+                remote_url = "http://%s/%s/%s" % (oss.get("Host"), oss.get("Bucket"), f"{taskId}.mp4")
+                
+        except Exception as result:
+            logger.exception("gan exception {}".format(result))
+            http_report(url=url, data=complet_req) 
+            return None
 
     complet_req["Progress"]=100
     complet_req["Status"]="SUCCESS"
-    complet_req["MediaUrl"] = videoStorageS3Url
+    complet_req["MediaUrl"] = remote_url
     http_report(url=url, data=complet_req) 
     os.remove(audio)
 

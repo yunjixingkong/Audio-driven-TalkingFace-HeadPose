@@ -3,7 +3,7 @@ import numpy as np
 import dlib
 import timeit 
 
-dlib_path = './shape_predictor_81_face_landmarks.dat'
+dlib_path = '../model/dlib/shape_predictor_81_face_landmarks.dat'
 
 detector = dlib.get_frontal_face_detector()
 
@@ -53,10 +53,10 @@ def draw_convex_hull(img, points, color):
 
 def get_organ_mask(img, tag):
     landmarks = get_landmark(img)
-    landmarks[36] = landmarks[36] - (5,0)
-    landmarks[37] = landmarks[37] - (0,5)
-    landmarks[44] = landmarks[44] - (0,5)
-    landmarks[45] = landmarks[45] + (5,0)
+    landmarks[36] = landmarks[36] - (3,0)
+    landmarks[37] = landmarks[37] - (0,3)
+    landmarks[44] = landmarks[44] - (0,3)
+    landmarks[45] = landmarks[45] + (3,0)
     mask = np.zeros(img.shape[:2])
     if tag == 'eye':
         white = [right_eye, left_eye]
@@ -76,6 +76,10 @@ def get_organ_mask(img, tag):
 
 def get_organ_mask_landmarks(img, landmarks, tag):
     mask = np.zeros(img.shape[:2])
+    landmarks[36] = landmarks[36] - (3,0)
+    landmarks[37] = landmarks[37] - (0,3)
+    landmarks[44] = landmarks[44] - (0,3)
+    landmarks[45] = landmarks[45] + (3,0)
     if tag == 'eye':
         white = [right_eye, left_eye]
     if tag == 'nose':

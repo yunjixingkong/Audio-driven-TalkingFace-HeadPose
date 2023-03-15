@@ -6,7 +6,26 @@ import numpy as np
 import time
 import pdb
 detector = dlib.get_frontal_face_detector()
-predictor = dlib.shape_predictor('../Deep3DFaceReconstruction/shape_predictor_68_face_landmarks.dat')
+predictor = dlib.shape_predictor('../Audio/model/dlib/shape_predictor_81_face_landmarks.dat')
+
+fd = cv2.CascadeClassifier(r'../Audio/model/dlib/haarcascade_frontalface_alt.xml')
+ed = cv2.CascadeClassifier(r'../Audio/model/dlib/haarcascade_eye_tree_eyeglasses.xml')
+
+def detect_blink(frame) :
+    faces = fd.detectMultiScale(frame, 1.3, 5)
+    for l, t, w, h in faces:
+        a, b = int(w / 2), int(h / 2) 
+        cv2.ellipse(frame, (l+a, t+b), (a, b), 0, 0, 360, (255, 0, 255), 2)
+        face = frame[t:t+h, l:l+w] 
+        eyes = ed.detectMultiScale(face, 1.3, 5)
+
+    for l, t, w, h in eyes:
+        a, b = int(w / 2), int(h / 2)
+        cv2.ellipse(face, (l+a, t+b), (a, b), 0,0, 360, (0, 255, 0), 2)
+    
+    if len(eyes) == 0:
+        return True
+    return False
 
 def shape_to_np(shape, dtype="int"):
     # initialize the list of (x, y)-coordinates
@@ -27,6 +46,12 @@ def detect_image(imagename, savepath=""):
     for (i, rect) in enumerate(rects):
         shape = predictor(gray, rect)
         shape = shape_to_np(shape)
+        # 保存眼睛相关landmark，在生成视频时使用
+        save_data={}
+        save_data["landmarks"]=np.matrix(shape)
+        save_data["close"]=detect_blink(image)
+        np.save(savepath.replace(".txt", ".npy"), save_data)
+        
         for (x, y) in shape:
             cv2.circle(image, (x, y), 1, (0, 0, 255), -1)
         eyel = np.round(np.mean(shape[36:42,:],axis=0)).astype("int")

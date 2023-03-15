@@ -6,7 +6,7 @@ import numpy as np
 import time
 import pdb
 detector = dlib.get_frontal_face_detector()
-predictor = dlib.shape_predictor('../Deep3DFaceReconstruction/shape_predictor_68_face_landmarks.dat')
+predictor = dlib.shape_predictor('../Audio/model/dlib/shape_predictor_81_face_landmarks.dat')
 
 def shape_to_np(shape, dtype="int"):
     # initialize the list of (x, y)-coordinates

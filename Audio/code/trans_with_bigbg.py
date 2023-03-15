@@ -70,7 +70,7 @@ def merge_with_bigbg(audiobasen,n, output_path=None):
 	orig_len=len(orig_list)
 
 	# 使用切片功能把大列表分成多个小列表   
-	p_count=16
+	p_count=20
 	b_size=len(coeffs)//p_count
 	sub_coeffs = [coeffs[i*b_size:(i+1)*b_size] for i in range(len(coeffs)//b_size)]   
 	
@@ -91,19 +91,38 @@ def merge_with_bigbg(audiobasen,n, output_path=None):
 				img.save(os.path.join(transbigbgdir,'%05d.png'%pos))
 			else:
 				# seamless clone
-				img = cv2.imread('../../Data/'+person+'/frame%d.png'%assigni)
+				png_path='../../Data/'+person+'/frame%d.png'%assigni
+				# print(png_path)
+				img = cv2.imread(png_path)
 				img1 = cv2.imread(sample_dir2+'/R_'+person+'_reassign2-%05d_blend2_fake.png'%pos)
 				img1 = cv2.resize(img1,(w2,h2),interpolation=cv2.INTER_LANCZOS4)
 				mask = np.ones(img1.shape,img1.dtype) * 255
 				center = (t0+int(img1.shape[0]/2),t1+int(img1.shape[1]/2))
+
 				output = cv2.seamlessClone(img1,img,mask,center,cv2.NORMAL_CLONE)
-				print(f"current pos {pos}, blink{blink}")
-				if pos==blink:
-					orig_pos = pos%orig_len
-					# img_orig = cv2.imread(orig_list[orig_pos])
-					img_orig = cv2.imread(orig_list[32])
-					output = swap_orgin_data_with_landmark(output, img_orig,f.get_landmark(output), f.get_landmark(img_orig),'eye')
-					blink=pos+random.randint(4,10)*25
+				# print(f"current pos {pos}, blink{blink}")
+
+				# data_tmp=np.load(png_path.replace(".png", ".npy"), allow_pickle=True).item()
+				# if data_tmp["close"]:
+				# 	output = swap_orgin_data_with_landmark(output, img,f.get_landmark(output), data_tmp["landmarks"],'eye')
+    
+				# data_tmp=np.load(png_path.replace(".png", ".npy"), allow_pickle=True).item()
+				# if data_tmp["close"] == True:
+				# 	img_orig = cv2.imread(png_path)
+				# 	output = swap_orgin_data_with_landmark(output, img_orig,f.get_landmark(output), data_tmp["landmarks"],'eye', True)
+			
+				orig_pos = pos%orig_len
+				data_tmp=np.load(orig_list[orig_pos].replace(".png", ".npy"), allow_pickle=True).item()
+				img_orig = cv2.imread(orig_list[orig_pos])
+				output = swap_orgin_data_with_landmark(output, img_orig,f.get_landmark(output), data_tmp["landmarks"],'eye', data_tmp["close"])
+    
+    	
+				# if pos==blink:
+				# 	orig_pos = pos%orig_len
+				# 	# img_orig = cv2.imread(orig_list[orig_pos])
+				# 	img_orig = cv2.imread(orig_list[32])
+				# 	output = swap_orgin_data_with_landmark(output, img_orig,f.get_landmark(output), f.get_landmark(img_orig),'eye')
+				# 	blink=pos+random.randint(4,10)*25
 				cv2.imwrite(os.path.join(transbigbgdir,'%05d.png'%pos),output)
 
 	threads = []
@@ -122,13 +141,13 @@ def merge_with_bigbg(audiobasen,n, output_path=None):
 	os.system(command)
 	if output_path != None:
 		shutil.move(video_name, output_path)
-	os.remove(video_name)
+	# os.remove(video_name)
 	elapsed = timeit.default_timer() - start_time  # 计算函数执行时长 
 	print(f"merge_with_bigbg elapsed {elapsed}")
 	print('saved to', video_name.replace('.mp4','.mov'))
 
-# audiobasen=sys.argv[1]
-# n = int(sys.argv[2])
+audiobasen=sys.argv[1]
+n = int(sys.argv[2])
 
-# if __name__ == "__main__":
-# 	merge_with_bigbg(audiobasen,n)
+if __name__ == "__main__":
+	merge_with_bigbg(audiobasen,n)
