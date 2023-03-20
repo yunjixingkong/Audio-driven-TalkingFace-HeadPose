@@ -69,7 +69,7 @@ def dreassign2(video, audio, start, audiomodel='', num=300, debug=0, tran=0):
 			assigns[i] = i%num
 		else:
 			assigns[i] = num-1-(i%num)
-	print(assigns)
+	print(f"assigns: {assigns}")
 	if not os.path.exists(folder_to_process+'/reassign'):
 		os.mkdir(folder_to_process+'/reassign')
 	for i in range(N):
@@ -97,8 +97,9 @@ def dreassign2(video, audio, start, audiomodel='', num=300, debug=0, tran=0):
 	return tardir2
 
 gpu_id = 0 if len(sys.argv) < 4 else int(sys.argv[3])
-start=0;ganepoch=60;audioepoch=99
-
+start=0;
+ganepoch=60;
+audioepoch=99
 
 audiobasen=sys.argv[1]
 n = int(sys.argv[2])#person id
@@ -131,7 +132,7 @@ if __name__ == "__main__":
 
 	## 2.background matching
 	num = 300
-	bgdir = dreassign2('19_news/'+person, audiobasen, start, audiomodel, num=num, tran=pingyi)
+	bgdir = dreassign2('19_news/'+person, audiobasen, start, audiomodel, num=num, tran=pingyi, debug=1)
 
 
 	## 3.render to save_dir
@@ -150,6 +151,7 @@ if __name__ == "__main__":
 	srcdir = save_dir
 	#if not os.path.exists(save_dir+'/00000_blend2.png'):
 	cmd = "cd ../results; octave --eval \"pkg load image; alpha_blend_vbg('" + bgdir + "','" + srcdir + "'); quit;\""
+	print(cmd)
 	os.system(cmd)
 	elapsed = timeit.default_timer() - start_time 
 	print("Time elapsed: ", elapsed)
@@ -158,7 +160,9 @@ if __name__ == "__main__":
 	sample_dir2 = '../../render-to-video/results/%s/test_%d/images%s/'%(ganmodel,ganepoch,seq)
 	#if not os.path.exists(sample_dir2):
 	getsingle(save_dir,seq,1,1)
-	os.system('cd ../../render-to-video; python test_memory.py --dataroot %s --name %s --netG unetac_adain_256 --model test --Nw 3 --norm batch --dataset_mode single_multi --use_memory 1 --attention 1 --num_test 10000 --epoch %d --gpu_ids %d --imagefolder images%s'%(seq,ganmodel,ganepoch,gpu_id,seq))
+	cmd='cd ../../render-to-video; python test_memory.py --dataroot %s --name %s --netG unetac_adain_256 --model test --Nw 3 --norm batch --dataset_mode single_multi --use_memory 1 --attention 1 --num_test 10000 --epoch %d --gpu_ids %d --imagefolder images%s'%(seq,ganmodel,ganepoch,gpu_id,seq)
+	print(f"test cmd: %s"%cmd)
+	os.system(cmd)
 
 
 	os.system('cp '+sample_dir2+'/R_'+person+'_reassign2-00002_blend2_fake.png '+sample_dir2+'/R_'+person+'_reassign2-00000_blend2_fake.png')

@@ -37,6 +37,7 @@ def demo_19news(n1,n2):
 		input_img = np.squeeze(input_img)
 		img1 = Image.fromarray(input_img[:,:,::-1])
 
+		# 通过面部的5个点，计算缩放比例
 		scale = 0.5 * (lm[0][0]-lm[1][0]) / (lm_new[0][0]-lm_new[1][0]) + 0.5 * (lm[3][0]-lm[4][0]) / (lm_new[3][0]-lm_new[4][0])
 		#print(scale)
 		trans = np.mean(lm-lm_new*scale, axis=0)

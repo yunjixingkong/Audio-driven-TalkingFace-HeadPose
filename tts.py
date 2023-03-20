@@ -72,17 +72,35 @@ def process_all(message):
     speed = task_dict.get("Speed")
     audioStorageS3Url = task_dict.get("AudioStorageS3Url")
 
+    if len(timbreKey) == 0:
+        timbreKey="zhiyan"
+
     audioStorageS3Url=unquote(audioStorageS3Url) 
     inputSsml=unquote(inputSsml)
 
     audio=os.path.join(audio_cache, f"{taskId}.wav")
     _TTSModel.infer(timbreKey, inputSsml, output=audio) 
-       
-    upload_with_put(local_file=audio, url=audioStorageS3Url)
-
+    
+    remote_url=""
+    if len(audioStorageS3Url)> 0:
+        upload_with_put(local_file=audio, url=audioStorageS3Url)
+        remote_url=audioStorageS3Url
+    else:
+        try:
+            remote_url=_OSSClient.upload(bucket_name=oss.get("Bucket"), object_name=f"{taskId}.wav", file_path=audio)
+            if oss.get("Secure"):
+                remote_url = "https://%s/%s/%s" % (oss.get("Host"), oss.get("Bucket"), f"{taskId}.wav")
+            else:
+                remote_url = "http://%s/%s/%s" % (oss.get("Host"), oss.get("Bucket"), f"{taskId}.wav")
+                
+        except Exception as result:
+            logger.exception("gan exception {}".format(result))
+            http_report(url=url, data=complet_req) 
+            return None
+    
     complet_req["Progress"]=100
     complet_req["Status"]="SUCCESS"
-    complet_req["MediaUrl"] = audioStorageS3Url
+    complet_req["MediaUrl"] = remote_url
     http_report(url=url, data=complet_req) 
     os.remove(audio)
 

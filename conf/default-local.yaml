@@ -1,7 +1,7 @@
-WebHookURL: "http://meta.eta-ai.com/virtualman/updateTask"
+WebHookURL: "http://192.168.2.103:8888/virtualman/updateTask"
 Nsq:
   Hosts:
-  - "139.159.217.220:4161" # lookupd http服务地址地址4161，非tcp地址的4160
+  - "192.168.2.2:4161" # lookupd http服务地址地址4161，非tcp地址的4160
   # - "139.159.217.220:4161" # lookupd http服务地址地址4161，非tcp地址的4160
   AuthSecret: ""
 
@@ -13,8 +13,8 @@ Templates:
   3: "/data/online/paddle-worker/PaddleBoBo/file/input/3.mp4"
 
 OSS:
-  Host: "storage.eta-ai.com"
+  Host: "192.168.2.2:9000"
   AccessKeyID: "minioadmin"
-  SecretKey: "minioadmin@123"
+  SecretKey: "minioadmin"
   Bucket: "artifact"
-  Secure: True # 是否使用https
+  Secure: False # 是否使用https

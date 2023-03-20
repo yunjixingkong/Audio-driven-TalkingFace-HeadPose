@@ -7,6 +7,7 @@ import numpy as np
 import torch.utils.data as data
 from PIL import Image
 import torchvision.transforms as transforms
+from torchvision.transforms import InterpolationMode
 from abc import ABCMeta, abstractmethod
 
 
@@ -81,6 +82,9 @@ def get_params(opt, size):
 
 def get_transform(opt, params=None, grayscale=False, method=Image.BICUBIC, convert=True, resnet=False):
     transform_list = []
+    if method == Image.LANCZOS:
+        method = InterpolationMode.LANCZOS
+        
     if grayscale:
         transform_list.append(transforms.Grayscale(1))
     if 'resize' in opt.preprocess:

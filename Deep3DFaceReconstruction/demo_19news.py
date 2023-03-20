@@ -15,8 +15,8 @@ import pdb
 import time
 
 def load_graph(graph_filename):
-	with tf.gfile.GFile(graph_filename,'rb') as f:
-		graph_def = tf.GraphDef()
+	with tf.io.gfile.GFile(graph_filename,'rb') as f:
+		graph_def = tf.compat.v1.GraphDef()
 		graph_def.ParseFromString(f.read())
 
 	return graph_def
@@ -54,19 +54,19 @@ def demo(image_path):
 	#with tf.Graph().as_default() as graph,tf.device('/cpu:0'):
 	with tf.Graph().as_default() as graph:
 
-		images = tf.placeholder(name = 'input_imgs', shape = [None,224,224,3], dtype = tf.float32)
+		images = tf.compat.v1.placeholder(name = 'input_imgs', shape = [None,224,224,3], dtype = tf.float32)
 		graph_def = load_graph('network/FaceReconModel.pb')
 		tf.import_graph_def(graph_def,name='resnet',input_map={'input_imgs:0': images})
 
 		# output coefficients of R-Net (dim = 257) 
 		coeff = graph.get_tensor_by_name('resnet/coeff:0')
 
-		faceshaper = tf.placeholder(name = "face_shape_r", shape = [1,35709,3], dtype = tf.float32)
-		facenormr = tf.placeholder(name = "face_norm_r", shape = [1,35709,3], dtype = tf.float32)
-		facecolor = tf.placeholder(name = "face_color", shape = [1,35709,3], dtype = tf.float32)
+		faceshaper = tf.compat.v1.placeholder(name = "face_shape_r", shape = [1,35709,3], dtype = tf.float32)
+		facenormr = tf.compat.v1.placeholder(name = "face_norm_r", shape = [1,35709,3], dtype = tf.float32)
+		facecolor = tf.compat.v1.placeholder(name = "face_color", shape = [1,35709,3], dtype = tf.float32)
 		rendered = Render_layer(faceshaper,facenormr,facecolor,facemodel,1)
 
-		rstimg = tf.placeholder(name = 'rstimg', shape = [224,224,4], dtype=tf.uint8)
+		rstimg = tf.compat.v1.placeholder(name = 'rstimg', shape = [224,224,4], dtype=tf.uint8)
 		encode_png = tf.image.encode_png(rstimg)
 
 		with tf.Session() as sess:
@@ -77,9 +77,11 @@ def demo(image_path):
 				img,lm = load_img(file,file[:-4]+'.txt')
 				file = file.replace(image_path, name)
 				# preprocess input image
+				# 通过2d的面部5个关键点坐标，计算出3d的坐标，以及角度（针对摄像机的角度？）
 				input_img,lm_new,transform_params = Preprocess(img,lm,lm3D)
 				if n==1:
 					transform_firstflame=transform_params
+				# 计算与第一张图片的角度变化，并渲染一张新图出来
 				input_img2,lm_new2 = Preprocess2(img,lm,transform_firstflame)
 
 				coef = sess.run(coeff,feed_dict = {images: input_img})

@@ -161,7 +161,7 @@ if __name__ == '__main__':
         os.makedirs(save_dir)
     coef_paths = sorted(glob.glob(coef_dir+'/*.npy'))
     L = len(coef_paths)
-    with tf.Session() as sess:
+    with tf.compat.v1.Session() as sess:
         render_object = RenderObject(sess)
         for i in range(L):
             basen = os.path.basename(coef_paths[i])

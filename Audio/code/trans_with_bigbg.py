@@ -71,14 +71,14 @@ def merge_with_bigbg(audiobasen,n, output_path=None):
 	orig_len=len(orig_list)
 
 	# 使用切片功能把大列表分成多个小列表   
-	p_count=16
+	p_count=20
 	b_size=len(coeffs)//p_count
 	sub_coeffs = [coeffs[i*b_size:(i+1)*b_size] for i in range(len(coeffs)//b_size)]   
 	
 	def merge(start, coeffs):
-		f = FaceLandmark()
-		orig_pos=0
-		blink=start+random.randint(1,5)*25 # 按照25fps，每秒15-20次眨眼
+		# f = FaceLandmark()
+		# orig_pos=0
+		# blink=start+random.randint(1,5)*25 # 按照25fps，每秒15-20次眨眼
 		for i in range(len(coeffs)):
 			pos=start+i
 			data = np.load(coeff_dir+'/%05d.npy'%pos)
@@ -97,11 +97,42 @@ def merge_with_bigbg(audiobasen,n, output_path=None):
 				img = cv2.imread(png_path)
 				img1 = cv2.imread(sample_dir2+'/R_'+person+'_reassign2-%05d_blend2_fake.png'%pos)
 				img1 = cv2.resize(img1,(w2,h2),interpolation=cv2.INTER_LANCZOS4)
+
+				# 默认整张脸
+				# mask = np.ones(img1.shape,img1.dtype) * 255
+				# center = (t0+int(img1.shape[0]/2),t1+int(img1.shape[1]/2))
+
+				# 嘴部矩形融合
+				# mask1,center1, nose1=f.get_mask_center(img,15)
+				# mask, center,nose = f.get_mask_center(img1, 5)
+				# mask=mask.astype(np.uint8)
+				# center = (t0+center[0],t1+center[1])
+   
+				# 半张脸融合
+				# mask = np.ones(img1.shape,img1.dtype) * 255
+				# mask[0:int(h2/2),:,0:3] = 0
+				# center = (t0+int(img1.shape[0]/2),t1+int(img1.shape[1]-h2/4))
+        
+				# 2/5张脸融合
+				# mask = np.ones(img1.shape,img1.dtype) * 255
+				# mask[0:int(h2/5*3),:,0:3] = 0
+				# center = (t0+int(img1.shape[0]/2),t1+int(img1.shape[1]-h2/5))
+
+				# 45/100张脸融合
+				s=0.375
 				mask = np.ones(img1.shape,img1.dtype) * 255
-				mask[0:int(h2/2),:,0:3] = 0
-				center = (t0+int(img1.shape[0]/2),t1+int(img1.shape[1]-h2/4))
+				mask[0:int(h2*(1-s)),:,0:3] = 0
+				center = (t0+int(img1.shape[0]/2),t1+int(img1.shape[1]-h2*(s/2)))
+
+				# 鼻子以下融合
+				# mask = np.ones(img1.shape,img1.dtype) * 255
+				# mask[0:int(nose[1]),:,0:3] = 0
+				# pad_x, pad_y = int(t0+nose[0]-nose1[0]), int(t1+nose[1]-nose1[1])
+				# center = (t0+int(img1.shape[0]/2), t1+int((img1.shape[1]-nose[1])/2+nose[1])-pad_y)
+				# center = (t0+int(img1.shape[0]/2), t1+int((img1.shape[1]-h2/5)))
 
 				output = cv2.seamlessClone(img1,img,mask,center,cv2.NORMAL_CLONE)
+				print(f"frame {pos}, fake center{center}")
 				# print(f"current pos {pos}, blink{blink}")
 
 				# data_tmp=np.load(png_path.replace(".png", ".npy"), allow_pickle=True).item()
