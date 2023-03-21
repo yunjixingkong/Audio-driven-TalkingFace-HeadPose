@@ -30,7 +30,7 @@ def save_each_100(folder):
 n = int(sys.argv[1])
 gpu_id = int(sys.argv[2])
 # check video
-mp4 = '../../Data/%d.mp4'%n
+mp4 = '../../Data/%d.mov'%n
 if not os.path.exists(mp4):
     print('target video', mp4, 'not exists')
     exit(-1)
@@ -47,7 +47,7 @@ if not valid:
 # extract mfcc
 srcdir = '../../Data/'
 tardir = '../dataset/mfcc/19_news'
-video = str(n)+'.mp4'
+video = str(n)+'.mov'
 get_mfcc_extend(video, srcdir, tardir)
 
 # fine tune audio

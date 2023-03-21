@@ -94,10 +94,16 @@ def merge_with_bigbg(audiobasen,n, output_path=None):
 				# seamless clone
 				png_path='../../Data/'+person+'/frame%d.png'%assigni
 				# print(png_path)
-				img = cv2.imread(png_path)
+				img = cv2.imread(png_path, cv2.IMREAD_UNCHANGED)
 				img1 = cv2.imread(sample_dir2+'/R_'+person+'_reassign2-%05d_blend2_fake.png'%pos)
 				img1 = cv2.resize(img1,(w2,h2),interpolation=cv2.INTER_LANCZOS4)
 
+				# Convert the image to RGBA
+				# img1 = cv2.cvtColor(img1, cv2.COLOR_RGB2RGBA)
+				# Load the mask numpy array
+				# mask_np = np.load('../../Data/'+person+'/frame%d.npy'%assigni)
+
+    
 				# 默认整张脸
 				# mask = np.ones(img1.shape,img1.dtype) * 255
 				# center = (t0+int(img1.shape[0]/2),t1+int(img1.shape[1]/2))
@@ -130,10 +136,21 @@ def merge_with_bigbg(audiobasen,n, output_path=None):
 				# pad_x, pad_y = int(t0+nose[0]-nose1[0]), int(t1+nose[1]-nose1[1])
 				# center = (t0+int(img1.shape[0]/2), t1+int((img1.shape[1]-nose[1])/2+nose[1])-pad_y)
 				# center = (t0+int(img1.shape[0]/2), t1+int((img1.shape[1]-h2/5)))
+				# 从源图像中提取alpha通道
+				src_alpha = img[:,:,3]
+				# 从源图像中删除alpha通道
+				img = img[:,:,0:3]
+
 
 				output = cv2.seamlessClone(img1,img,mask,center,cv2.NORMAL_CLONE)
-				print(f"frame {pos}, fake center{center}")
-				# print(f"current pos {pos}, blink{blink}")
+				print(f"frame {pos}, assing {assigni}, fake center{center}")
+    
+				# 将输出图像分离为其颜色通道
+				b, g, r = cv2.split(output)
+				a = np.load('../../Data/'+person+'/frame%d.npy'%assigni)
+				a = 255-a
+				# a = src_alpha
+				output = cv2.merge((b, g, r, a))
 
 				# data_tmp=np.load(png_path.replace(".png", ".npy"), allow_pickle=True).item()
 				# if data_tmp["close"]:
@@ -169,10 +186,22 @@ def merge_with_bigbg(audiobasen,n, output_path=None):
 
 	transbigbgdir = os.path.join(sample_dir,'trans_bigbg')
 	video_name = os.path.join(sample_dir,'%s_%swav_results_transbigbg.mp4'%(person,audiobasen))
-	command = 'ffmpeg -loglevel panic -framerate 25  -i ' + transbigbgdir +  '/%05d.png -c:v libx264 -y -vf format=yuv420p ' + video_name
+	# command = 'ffmpeg -loglevel panic -framerate 25  -i ' + transbigbgdir +  '/%05d.png -c:v libx264 -y -vf format=yuv420p ' + video_name
+	# os.system(command)
+	# command = 'ffmpeg -loglevel panic -i ' + video_name + ' -i ' + in_file + ' -vcodec copy  -acodec copy -y  ' + video_name.replace('.mp4','.mov')
+	# os.system(command)
+ 
+	# 兼容macos的quickplayer播放：ffmpeg -r 25 -i ../results/atcnet_pose0_con3/20/shengma_s_99/trans_bigbg/%05d.png -i ../audio/shengma_s.wav -c:v prores_ks -profile:v 5  -bits_per_mb 8000 -pix_fmt yuva422p10le output.mov
+	# command = 'ffmpeg -framerate 25 -i ' + transbigbgdir +  '/%05d.png -i '+ in_file + ' -c:v prores_ks -profile:v 5  -bits_per_mb 8000 -pix_fmt yuva422p10le -y ' + video_name.replace('.mp4','.mov')
+	# ffmpeg -r 25 -i ../results/atcnet_pose0_con3/20/shengma_s_99/trans_bigbg/%05d.png -i ../audio/shengma_s.wav -vcodec png -acodec aac -y output_video.mov
+	# command = 'ffmpeg -framerate 25 -i ' + transbigbgdir +  '/%05d.png -i '+ in_file + ' -vcodec png -acodec aac -y ' + video_name.replace('.mp4','.mov')
+	# print(command)
+	# os.system(command)
+
+	command = 'ffmpeg -framerate 25 -i ' + transbigbgdir + '/%05d.png -i '+ in_file + ' -c:v libvpx-vp9 -pix_fmt yuva420p -metadata:s:v:0 alpha_mode="1" -b:v 2M -y ' + video_name.replace('.mp4','.webm')
+	print(command)
 	os.system(command)
-	command = 'ffmpeg -loglevel panic -i ' + video_name + ' -i ' + in_file + ' -vcodec copy  -acodec copy -y  ' + video_name.replace('.mp4','.mov')
-	os.system(command)
+
 	if output_path != None:
 		shutil.move(video_name, output_path)
 	# os.remove(video_name)

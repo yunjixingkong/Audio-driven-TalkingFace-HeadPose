@@ -1,7 +1,7 @@
 import tensorflow as tf 
 import numpy as np
 import cv2
-from PIL import Image
+from PIL import Image,ImageOps
 import os
 import glob
 from scipy.io import loadmat,savemat
@@ -75,6 +75,23 @@ def demo(image_path):
 				n += 1
 				# load images and corresponding 5 facial landmarks
 				img,lm = load_img(file,file[:-4]+'.txt')
+
+				# Load the mask numpy array
+				mask_np = np.load(file[:-4]+'.npy')
+				mask = Image.fromarray(mask_np)
+				# 将透明区域替换为绿色
+				img.paste((0, 255, 0), mask=mask)
+				img = img.convert('RGB')
+
+				# # 反转 alpha 通道
+				# alpha = img.split()[-1]
+				# alpha = ImageOps.invert(alpha)
+				# # 创建非透明区域的掩码
+				# mask = alpha.point(lambda x: 255 * (x > 0))
+				# # 将透明区域替换为绿色
+				# img.paste((0, 255, 0), mask=mask)
+				# img = img.convert('RGB')
+       
 				file = file.replace(image_path, name)
 				# preprocess input image
 				# 通过2d的面部5个关键点坐标，计算出3d的坐标，以及角度（针对摄像机的角度？）
