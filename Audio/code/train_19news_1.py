@@ -2,6 +2,7 @@ import librosa
 import python_speech_features
 import numpy as np
 import os, glob, sys
+import shutil
 
 def get_mfcc_extend(video, srcdir, tardir):
 	test_file = os.path.join(srcdir,video)
@@ -49,15 +50,19 @@ srcdir = '../../Data/'
 tardir = '../dataset/mfcc/19_news'
 video = str(n)+'.mov'
 get_mfcc_extend(video, srcdir, tardir)
-
+sample_dir='../sample/atcnet_pose0_con3/%s'%n
 # fine tune audio
 n = str(n)
 if not os.path.exists('../model/atcnet_pose0_con3/%s'%n):
     os.makedirs('../model/atcnet_pose0_con3/%s'%n)
-if not os.path.exists('../sample/atcnet_pose0_con3/%s'%n):
-    os.makedirs('../sample/atcnet_pose0_con3/%s'%n)
+if not os.path.exists(sample_dir):
+    os.makedirs(sample_dir)
 if not os.path.exists('../model/atcnet_pose0_con3/%s/atcnet_lstm_99.pth'%n):
     cmd = 'python atcnet.py --pose 1 --relativeframe 0 --dataset news --newsname 19_news/%s --start 0 --model_dir ../model/atcnet_pose0_con3/%s/ --continue_train 1 --lr 0.0001 --less_constrain 1 --smooth_loss 1 --smooth_loss2 1 --model_name ../model/atcnet_lstm_general.pth --sample_dir ../sample/atcnet_pose0_con3/%s --device_ids %d --max_epochs 100' % (n, n, n, gpu_id)
     print(cmd)
     os.system(cmd)
 save_each_100('../model/atcnet_pose0_con3/%s'%n)
+
+mfcc_file=os.path.join(tardir,video[:-4]+'.npy')
+os.remove(mfcc_file)
+shutil.rmtree(sample_dir)

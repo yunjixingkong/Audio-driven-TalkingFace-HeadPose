@@ -11,7 +11,7 @@ import numpy as np
 
 
 detector = dlib.get_frontal_face_detector()
-predictor = dlib.shape_predictor('../Deep3DFaceReconstruction/shape_predictor_68_face_landmarks.dat')
+predictor = dlib.shape_predictor('../Audio/model/dlib/shape_predictor_81_face_landmarks.dat')
 
 def shape_to_np(shape, dtype="int"):
     # initialize the list of (x, y)-coordinates
@@ -72,8 +72,18 @@ container = av.open(videoname)
 for frame in container.decode(video=0):
     frame = frame.to_ndarray(format="bgra") # BGRA
     cv2.imwrite("%s/frame%d%s"%(mp4[:-4],count,postfix), frame, [cv2.IMWRITE_PNG_COMPRESSION, 0])
+    # 创建图像透明区域的掩码
+    mask = frame[:, :, 3] == 0
+    # 转换为PIL掩码格式
+    mask = (mask * 255).astype(np.uint8)
+    # 对掩码进行模糊处理，增加抗锯齿效果
+    mask = cv2.GaussianBlur(mask, (5, 5), 0)
+    np.save("%s/frame%d%s"%(mp4[:-4],count,".npy"), mask)
     # print("frame:", frame.shape) # Well done!!
     count += 1
+    if count >= 400:
+        break
+container.close()
 
 detect_dir(mp4[:-4])
 t2 = time.time()

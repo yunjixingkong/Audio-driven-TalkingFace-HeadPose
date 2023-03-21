@@ -32,7 +32,7 @@ def getsingle(srcdir,name,varybg=0,multi=0):
 
 def dreassign2(video, audio, start, audiomodel='', num=300, debug=0, tran=0):
 	# print(video,audio,start,audiomodel)
-	rootdir = '../..//Deep3DFaceReconstruction/'
+	rootdir = '../../Deep3DFaceReconstruction/'
 	matdir = os.path.join(rootdir,'output/coeff',video)
 	pngdir = os.path.join(rootdir,'output/render',video)
 	L = 64
@@ -97,8 +97,9 @@ def dreassign2(video, audio, start, audiomodel='', num=300, debug=0, tran=0):
 	return tardir2
 
 gpu_id = 0 if len(sys.argv) < 4 else int(sys.argv[3])
-start=0;ganepoch=60;audioepoch=99
-
+start=0;
+ganepoch=60;
+audioepoch=99
 
 audiobasen=sys.argv[1]
 n = int(sys.argv[2])#person id
@@ -134,7 +135,6 @@ if __name__ == "__main__":
 	num = 300
 	bgdir = dreassign2('19_news/'+person, audiobasen, start, audiomodel, num=num, tran=pingyi)
 
-	# pingyi = 2;
 	## 3.render to save_dir
 	coeff_dir = os.path.join(sample_dir,'reassign')
 	rootdir = '../../Deep3DFaceReconstruction/output/coeff/'
@@ -159,17 +159,25 @@ if __name__ == "__main__":
 	sample_dir2 = '../../render-to-video/results/%s/test_%d/images%s/'%(ganmodel,ganepoch,seq)
 	#if not os.path.exists(sample_dir2):
 	getsingle(save_dir,seq,1,1)
-	os.system('cd ../../render-to-video; python test_memory.py --dataroot %s --name %s --netG unetac_adain_256 --model test --Nw 3 --norm batch --dataset_mode single_multi --use_memory 1 --attention 1 --num_test 10000 --epoch %d --gpu_ids %d --imagefolder images%s'%(seq,ganmodel,ganepoch,gpu_id,seq))
+	cmd='cd ../../render-to-video; python test_memory.py --dataroot %s --name %s --netG unetac_adain_256 --model test --Nw 3 --norm batch --dataset_mode single_multi --use_memory 1 --attention 1 --num_test 10000 --epoch %d --gpu_ids %d --imagefolder images%s'%(seq,ganmodel,ganepoch,gpu_id,seq)
+	print(f"test cmd: %s"%cmd)
+	os.system(cmd)
+
 
 	os.system('cp '+sample_dir2+'/R_'+person+'_reassign2-00002_blend2_fake.png '+sample_dir2+'/R_'+person+'_reassign2-00000_blend2_fake.png')
 	os.system('cp '+sample_dir2+'/R_'+person+'_reassign2-00002_blend2_fake.png '+sample_dir2+'/R_'+person+'_reassign2-00001_blend2_fake.png')
 	
-	video_name = os.path.join(sample_dir,'%s_%swav_results%s.mp4'%(person,audiobasen,post))
-	command = 'ffmpeg -loglevel panic -framerate 25  -i ' + sample_dir2 +  '/R_' + person + '_reassign2-%05d_blend2_fake.png -c:v libx264 -y -vf format=yuv420p ' + video_name
-	os.system(command)
-	command = 'ffmpeg -loglevel panic -i ' + video_name + ' -i ' + in_file + ' -vcodec copy  -acodec copy -y  ' + video_name.replace('.mp4','.mov')
-	os.system(command)
-	os.remove(video_name)
-	print('saved to',video_name.replace('.mp4','.mov'))
+	# video_name = os.path.join(sample_dir,'%s_%swav_results%s.mp4'%(person,audiobasen,post))
+	# command = 'ffmpeg -loglevel panic -framerate 25  -i ' + sample_dir2 +  '/R_' + person + '_reassign2-%05d_blend2_fake.png -c:v libx264 -y -vf format=yuv420p ' + video_name
+	# os.system(command)
+	# command = 'ffmpeg -loglevel panic -i ' + video_name + ' -i ' + in_file + ' -vcodec copy  -acodec copy -y  ' + video_name.replace('.mp4','.mov')
+	# os.system(command)
+	# os.remove(video_name)
+	# print('saved to',video_name.replace('.mp4','.mov'))
 
 	merge_with_bigbg(audiobasen,n, output_path)
+
+	# 清理文件
+	os.remove('../../render-to-video/datasets/list/testSingle/%s.txt'%seq)
+	if output_path is not None:
+		shutil.rmtree('../results/' + audio_exp_name)

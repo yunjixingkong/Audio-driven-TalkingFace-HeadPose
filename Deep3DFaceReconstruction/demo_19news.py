@@ -69,14 +69,14 @@ def demo(image_path):
 		rstimg = tf.compat.v1.placeholder(name = 'rstimg', shape = [224,224,4], dtype=tf.uint8)
 		encode_png = tf.image.encode_png(rstimg)
 
-		with tf.Session() as sess:
+		with tf.compat.v1.Session() as sess:
 			print('reconstructing...')
 			for file in img_list:
 				n += 1
 				# load images and corresponding 5 facial landmarks
 				img,lm = load_img(file,file[:-4]+'.txt')
 
-				# Load the mask numpy array
+				# Load the mask numpy arraymask.npy
 				mask_np = np.load(file[:-4]+'.npy')
 				mask = Image.fromarray(mask_np)
 				# 将透明区域替换为绿色

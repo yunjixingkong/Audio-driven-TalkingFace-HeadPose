@@ -32,7 +32,7 @@ def getsingle(srcdir,name,varybg=0,multi=0):
 
 def dreassign2(video, audio, start, audiomodel='', num=300, debug=0, tran=0):
 	print(video,audio,start,audiomodel)
-	rootdir = '../..//Deep3DFaceReconstruction/'
+	rootdir = '../../Deep3DFaceReconstruction/'
 	matdir = os.path.join(rootdir,'output/coeff',video)
 	pngdir = os.path.join(rootdir,'output/render',video)
 	L = 64
@@ -168,12 +168,12 @@ if __name__ == "__main__":
 	os.system('cp '+sample_dir2+'/R_'+person+'_reassign2-00002_blend2_fake.png '+sample_dir2+'/R_'+person+'_reassign2-00000_blend2_fake.png')
 	os.system('cp '+sample_dir2+'/R_'+person+'_reassign2-00002_blend2_fake.png '+sample_dir2+'/R_'+person+'_reassign2-00001_blend2_fake.png')
 	
-	video_name = os.path.join(sample_dir,'%s_%swav_results%s.mp4'%(person,audiobasen,post))
-	command = 'ffmpeg -loglevel panic -framerate 25  -i ' + sample_dir2 +  '/R_' + person + '_reassign2-%05d_blend2_fake.png -c:v libx264 -y -vf format=yuv420p ' + video_name
-	os.system(command)
-	command = 'ffmpeg -loglevel panic -i ' + video_name + ' -i ' + in_file + ' -vcodec copy  -acodec copy -y  ' + video_name.replace('.mp4','.mov')
-	os.system(command)
-	os.remove(video_name)
-	print('saved to',video_name.replace('.mp4','.mov'))
+	# video_name = os.path.join(sample_dir,'%s_%swav_results%s.mp4'%(person,audiobasen,post))
+	# command = 'ffmpeg -loglevel panic -framerate 25  -i ' + sample_dir2 +  '/R_' + person + '_reassign2-%05d_blend2_fake.png -c:v libx264 -y -vf format=yuv420p ' + video_name
+	# os.system(command)
+	# command = 'ffmpeg -loglevel panic -i ' + video_name + ' -i ' + in_file + ' -vcodec copy  -acodec copy -y  ' + video_name.replace('.mp4','.mov')
+	# os.system(command)
+	# os.remove(video_name)
+	# print('saved to',video_name.replace('.mp4','.mov'))
 
 	merge_with_bigbg(audiobasen,n)

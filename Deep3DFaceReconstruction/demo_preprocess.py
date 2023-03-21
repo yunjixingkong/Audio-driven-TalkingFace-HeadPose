@@ -49,7 +49,7 @@ def demo_19news(n1,n2):
 		img.paste(img1,(trans[0],trans[1],trans[0]+img1.size[0],trans[1]+img1.size[1]))
 		np.save(os.path.join('../Data',str(n),'transbig.npy'),np.array([w2,h2,trans[0],trans[1]]))
 		#print(os.path.join('../Data',str(n),'transbig.npy'))
-		img.save('combine.png')
+		# img.save('combine.png')
 
 if __name__ == '__main__':
 	demo_19news(int(sys.argv[1]),int(sys.argv[2]))

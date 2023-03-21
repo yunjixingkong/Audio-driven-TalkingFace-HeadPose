@@ -77,3 +77,17 @@ save_each_60('checkpoints/memory_seq_p2p/%s'%n)
 epoch = 60
 cmd = 'python test.py --dataroot %s_bmold_win3 --name memory_seq_p2p/%s --model memory_seq --num_test 200 --epoch %d --gpu_ids %d --imagefolder images%d' % (n,n,epoch,gpu_id,epoch)
 os.system(cmd)
+
+
+# 清理不必要的文件
+name = str(n)+'_bmold_win3'
+os.remove('datasets/list/trainA/%s.txt'%name)
+os.remove('datasets/list/trainB/%s.txt'%name)
+os.remove('datasets/list/testA/%s.txt'%name)
+os.remove('datasets/list/testB/%s.txt'%name)
+
+import shutil
+rootdir = os.path.join(os.getcwd(),'../Deep3DFaceReconstruction/output/render/')
+shutil.rmtree(os.path.join(rootdir, '19_news/'+n+'/bm'))
+shutil.rmtree('arcface/iden_feat'+n)
+shutil.rmtree('results/memory_seq_p2p/'+n)

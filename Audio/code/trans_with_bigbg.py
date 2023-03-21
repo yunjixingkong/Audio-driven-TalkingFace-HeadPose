@@ -41,11 +41,11 @@ def merge_with_bigbg(audiobasen,n, output_path=None):
 	os.system('cp '+sample_dir2+'/R_'+person+'_reassign2-00002_blend2_fake.png '+sample_dir2+'/R_'+person+'_reassign2-00001_blend2_fake.png')
 
 	video_name = os.path.join(sample_dir,'%s_%swav_results%s.mp4'%(person,audiobasen,post))
-	command = 'ffmpeg -loglevel panic -framerate 25  -i ' + sample_dir2 +  '/R_' + person + '_reassign2-%05d_blend2_fake.png -c:v libx264 -y -vf format=yuv420p ' + video_name
-	os.system(command)
-	command = 'ffmpeg -loglevel panic -i ' + video_name + ' -i ' + in_file + ' -vcodec copy  -acodec copy -y  ' + video_name.replace('.mp4','.mov')
-	os.system(command)
-	os.remove(video_name)
+	# command = 'ffmpeg -loglevel panic -framerate 25  -i ' + sample_dir2 +  '/R_' + person + '_reassign2-%05d_blend2_fake.png -c:v libx264 -y -vf format=yuv420p ' + video_name
+	# os.system(command)
+	# command = 'ffmpeg -loglevel panic -i ' + video_name + ' -i ' + in_file + ' -vcodec copy  -acodec copy -y  ' + video_name.replace('.mp4','.mov')
+	# os.system(command)
+	# os.remove(video_name)
 	
 	if not os.path.exists(os.path.join('../../Data',str(n),'transbig.npy')):
 		cmd = 'cd ../../Deep3DFaceReconstruction/; python demo_preprocess.py %d %d' % (n,n+1)
@@ -198,13 +198,13 @@ def merge_with_bigbg(audiobasen,n, output_path=None):
 	# print(command)
 	# os.system(command)
 
-	command = 'ffmpeg -framerate 25 -i ' + transbigbgdir + '/%05d.png -i '+ in_file + ' -c:v libvpx-vp9 -pix_fmt yuva420p -metadata:s:v:0 alpha_mode="1" -b:v 2M -y ' + video_name.replace('.mp4','.webm')
+	command = 'ffmpeg -framerate 25 -i ' + transbigbgdir + '/%05d.png -i '+ in_file + ' -c:v libvpx-vp9 -pix_fmt yuva420p -metadata:s:v:0 alpha_mode="1" -b:v 2M -b:a 16K -y ' + video_name.replace('.mp4','.webm')
 	print(command)
 	os.system(command)
 
 	if output_path != None:
-		shutil.move(video_name, output_path)
-	# os.remove(video_name)
+		shutil.move(video_name.replace('.mp4','.webm'), output_path)
+	shutil.rmtree(sample_dir2)
 	elapsed = timeit.default_timer() - start_time  # 计算函数执行时长 
 	print(f"merge_with_bigbg elapsed {elapsed}")
 	print('saved to', video_name.replace('.mp4','.mov'))
