@@ -30,11 +30,24 @@ def save_each_100(folder):
 
 n = int(sys.argv[1])
 gpu_id = int(sys.argv[2])
+
 # check video
-mp4 = '../../Data/%d.mov'%n
-if not os.path.exists(mp4):
+mp4 = '../../Data/%d.mp4'%n
+mov = '../../Data/%d.mov'%n
+
+video=mp4
+endwith=".mp4"
+if os.path.exists(mp4):
+    video=mp4
+    endwith=".mp4"
+if os.path.exists(mov):
+    video=mov
+    endwith=".mov"
+    
+if not os.path.exists(mp4) and not os.path.exists(mov):
     print('target video', mp4, 'not exists')
     exit(-1)
+
 # check 3d recon
 rootdir = '../../Deep3DFaceReconstruction/output/coeff/19_news/%d' % n
 valid = True
@@ -45,10 +58,11 @@ for i in range(300):
 if not valid:
     print('not all 300 frames are reconstructed successfully')
     exit(-1)
+
 # extract mfcc
 srcdir = '../../Data/'
 tardir = '../dataset/mfcc/19_news'
-video = str(n)+'.mov'
+video = str(n)+endwith
 get_mfcc_extend(video, srcdir, tardir)
 sample_dir='../sample/atcnet_pose0_con3/%s'%n
 # fine tune audio

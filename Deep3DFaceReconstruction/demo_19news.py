@@ -76,12 +76,15 @@ def demo(image_path):
 				# load images and corresponding 5 facial landmarks
 				img,lm = load_img(file,file[:-4]+'.txt')
 
-				# Load the mask numpy arraymask.npy
-				mask_np = np.load(file[:-4]+'.npy')
-				mask = Image.fromarray(mask_np)
-				# 将透明区域替换为绿色
-				img.paste((0, 255, 0), mask=mask)
-				img = img.convert('RGB')
+				# 检查图像是否具有alpha通道
+				has_alpha = img.mode == 'RGBA' or img.mode == 'LA'
+				if has_alpha:
+					# Load the mask numpy arraymask.npy
+					mask_np = np.load(file[:-4]+'.npy')
+					mask = Image.fromarray(mask_np)
+					# 将透明区域替换为绿色
+					img.paste((0, 255, 0), mask=mask)
+					img = img.convert('RGB')
 
 				# # 反转 alpha 通道
 				# alpha = img.split()[-1]

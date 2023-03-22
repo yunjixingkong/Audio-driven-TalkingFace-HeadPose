@@ -136,21 +136,26 @@ def merge_with_bigbg(audiobasen,n, output_path=None):
 				# pad_x, pad_y = int(t0+nose[0]-nose1[0]), int(t1+nose[1]-nose1[1])
 				# center = (t0+int(img1.shape[0]/2), t1+int((img1.shape[1]-nose[1])/2+nose[1])-pad_y)
 				# center = (t0+int(img1.shape[0]/2), t1+int((img1.shape[1]-h2/5)))
-				# 从源图像中提取alpha通道
-				src_alpha = img[:,:,3]
-				# 从源图像中删除alpha通道
-				img = img[:,:,0:3]
+
+				# 检查图像是否具有alpha通道
+				has_alpha = img.shape[2] == 4
+				if has_alpha:
+					# 从源图像中提取alpha通道
+					src_alpha = img[:,:,3]
+					# 从源图像中删除alpha通道
+					img = img[:,:,0:3]
 
 
 				output = cv2.seamlessClone(img1,img,mask,center,cv2.NORMAL_CLONE)
 				print(f"frame {pos}, assing {assigni}, fake center{center}")
     
-				# 将输出图像分离为其颜色通道
-				b, g, r = cv2.split(output)
-				a = np.load('../../Data/'+person+'/frame%d.npy'%assigni)
-				a = 255-a
-				# a = src_alpha
-				output = cv2.merge((b, g, r, a))
+				if has_alpha:
+					# 将输出图像分离为其颜色通道
+					b, g, r = cv2.split(output)
+					a = np.load('../../Data/'+person+'/frame%d.npy'%assigni)
+					a = 255-a
+					# a = src_alpha
+					output = cv2.merge((b, g, r, a))
 
 				# data_tmp=np.load(png_path.replace(".png", ".npy"), allow_pickle=True).item()
 				# if data_tmp["close"]:
@@ -198,7 +203,7 @@ def merge_with_bigbg(audiobasen,n, output_path=None):
 	# print(command)
 	# os.system(command)
 
-	command = 'ffmpeg -framerate 25 -i ' + transbigbgdir + '/%05d.png -i '+ in_file + ' -c:v libvpx-vp9 -pix_fmt yuva420p -metadata:s:v:0 alpha_mode="1" -b:v 2M -b:a 16K -y ' + video_name.replace('.mp4','.webm')
+	command = 'ffmpeg -thread_queue_size 4096 -framerate 25 -i ' + transbigbgdir + '/%05d.png -i '+ in_file + ' -c:v libvpx-vp9 -threads 16 -pix_fmt yuva420p -metadata:s:v:0 alpha_mode="1" -b:v 2M -b:a 16K -y ' + video_name.replace('.mp4','.webm')
 	print(command)
 	os.system(command)
 

@@ -10,7 +10,7 @@ import sys
 from scipy.io import loadmat,savemat
 import math
 import shutil
-import timeit
+import time
 
 def getsingle(srcdir,name,varybg=0,multi=0):
 	srcroot = os.getcwd()
@@ -105,6 +105,7 @@ audiobasen=sys.argv[1]
 n = int(sys.argv[2])#person id
 
 if __name__ == "__main__":
+	start_time = time.time()
 	person = str(n)
 	if os.path.exists(os.path.join('../audio/',audiobasen+'.wav')):
 		in_file = os.path.join('../audio/',audiobasen+'.wav')
@@ -147,14 +148,11 @@ if __name__ == "__main__":
 	os.system(cmd)
 
 	## 4.blend rendered with background
-	start_time = timeit.default_timer() 
 	srcdir = save_dir
 	#if not os.path.exists(save_dir+'/00000_blend2.png'):
 	cmd = "cd ../results; octave --eval \"pkg load image; alpha_blend_vbg('" + bgdir + "','" + srcdir + "'); quit;\""
 	print(cmd)
 	os.system(cmd)
-	elapsed = timeit.default_timer() - start_time 
-	print("Time elapsed: ", elapsed)
 
 	## 5.gan
 	sample_dir2 = '../../render-to-video/results/%s/test_%d/images%s/'%(ganmodel,ganepoch,seq)
@@ -177,3 +175,8 @@ if __name__ == "__main__":
 	# print('saved to',video_name.replace('.mp4','.mov'))
 
 	merge_with_bigbg(audiobasen,n)
+ 
+	end_time = time.time()
+
+	elapsed_time = end_time - start_time
+	print('代码运行时长：{:.2f}秒'.format(elapsed_time))

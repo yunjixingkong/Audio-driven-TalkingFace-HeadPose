@@ -52,41 +52,59 @@ def detect_dir(folder):
         # 调用dlib识别人脸数据信息，并写入txt文件
         detect_image(imagename=file, savepath=file[:-4]+'.txt')
 
+def extract_mp4(video, extract_count=400):
+    cap = cv2.VideoCapture(video)
+    length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    #print video, length
+    success, image = cap.read()
+    postfix = ".png"
+    if not os.path.exists(mp4[:-4]):
+        os.makedirs(mp4[:-4])
+    count = 0
+    # 只拆解400帧数据
+    while count < extract_count:
+        cv2.imwrite("%s/frame%d%s"%(mp4[:-4],count,postfix),image)
+        success, image = cap.read()
+        count += 1
+
+def extract_mov(video, extract_count=400):
+    postfix = ".png"
+    if not os.path.exists(mp4[:-4]):
+        os.makedirs(mp4[:-4])
+
+    count = 0
+    # 只拆解400帧数据
+    print("PyAV:", av.__version__)
+
+    container = av.open(video)
+    for frame in container.decode(video=0):
+        frame = frame.to_ndarray(format="bgra") # BGRA
+        cv2.imwrite("%s/frame%d%s"%(mp4[:-4],count,postfix), frame, [cv2.IMWRITE_PNG_COMPRESSION, 0])
+        # 创建图像透明区域的掩码
+        mask = frame[:, :, 3] == 0
+        # 转换为PIL掩码格式
+        mask = (mask * 255).astype(np.uint8)
+        # 对掩码进行模糊处理，增加抗锯齿效果
+        mask = cv2.GaussianBlur(mask, (5, 5), 0)
+        np.save("%s/frame%d%s"%(mp4[:-4],count,".npy"), mask)
+        # print("frame:", frame.shape) # Well done!!
+        count += 1
+        if count >= extract_count:
+            break
+    container.close()
+
+
 t1 = time.time()
 mp4 = sys.argv[1]
 videoname = mp4
 
-cap = cv2.VideoCapture(videoname)
-length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-#print videoname, length
-success, image = cap.read()
-postfix = ".png"
-if not os.path.exists(mp4[:-4]):
-    os.makedirs(mp4[:-4])
 
-count = 0
-# 只拆解400帧数据
-print("PyAV:", av.__version__)
+if videoname.endswith('.mp4'):
+    extract_mp4(videoname)
 
-container = av.open(videoname)
-for frame in container.decode(video=0):
-    frame = frame.to_ndarray(format="bgra") # BGRA
-    cv2.imwrite("%s/frame%d%s"%(mp4[:-4],count,postfix), frame, [cv2.IMWRITE_PNG_COMPRESSION, 0])
-    # 创建图像透明区域的掩码
-    mask = frame[:, :, 3] == 0
-    # 转换为PIL掩码格式
-    mask = (mask * 255).astype(np.uint8)
-    # 对掩码进行模糊处理，增加抗锯齿效果
-    mask = cv2.GaussianBlur(mask, (5, 5), 0)
-    np.save("%s/frame%d%s"%(mp4[:-4],count,".npy"), mask)
-    # print("frame:", frame.shape) # Well done!!
-    count += 1
-    if count >= 400:
-        break
-container.close()
+if videoname.endswith('.mov'):
+    extract_mov(videoname)
 
-detect_dir(mp4[:-4])
-t2 = time.time()
-
+detect_dir(videoname[:-4])
 
 
