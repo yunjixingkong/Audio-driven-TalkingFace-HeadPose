@@ -14,6 +14,11 @@ from reconstruct_mesh import Reconstruction_for_render, Render_layer
 import pdb
 import time
 
+config = tf.compat.v1.ConfigProto()
+# 程序最多只能占用指定gpu50%的显存
+config.gpu_options.per_process_gpu_memory_fraction = 0.8  
+config.gpu_options.allow_growth = True      #程序按需申请内存
+
 def load_graph(graph_filename):
 	with tf.io.gfile.GFile(graph_filename,'rb') as f:
 		graph_def = tf.compat.v1.GraphDef()
@@ -69,7 +74,7 @@ def demo(image_path):
 		rstimg = tf.compat.v1.placeholder(name = 'rstimg', shape = [224,224,4], dtype=tf.uint8)
 		encode_png = tf.image.encode_png(rstimg)
 
-		with tf.compat.v1.Session() as sess:
+		with tf.compat.v1.Session(config=config) as sess:
 			print('reconstructing...')
 			for file in img_list:
 				n += 1
@@ -80,7 +85,7 @@ def demo(image_path):
 				has_alpha = img.mode == 'RGBA' or img.mode == 'LA'
 				if has_alpha:
 					# Load the mask numpy arraymask.npy
-					mask_np = np.load(file[:-4]+'.npy')
+					mask_np = np.load(file[:-4]+'.npy').astype('uint8')
 					mask = Image.fromarray(mask_np)
 					# 将透明区域替换为绿色
 					img.paste((0, 255, 0), mask=mask)

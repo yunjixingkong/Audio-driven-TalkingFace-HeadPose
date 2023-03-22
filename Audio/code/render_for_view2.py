@@ -8,7 +8,7 @@ import sys
 import glob
 from PIL import Image
 import pdb
-
+import threading
 rootdir = '../../Deep3DFaceReconstruction/'
 
 class BFM():
@@ -29,13 +29,13 @@ class RenderObject(object):
 	    # read face model
         self.facemodel = BFM()
 
-        self.faceshaper = tf.placeholder(name = "face_shape_r", shape = [1,35709,3], dtype = tf.float32)
-        self.facenormr = tf.placeholder(name = "face_norm_r", shape = [1,35709,3], dtype = tf.float32)
-        self.facecolor = tf.placeholder(name = "face_color", shape = [1,35709,3], dtype = tf.float32)
+        self.faceshaper = tf.compat.v1.placeholder(name = "face_shape_r", shape = [1,35709,3], dtype = tf.float32)
+        self.facenormr = tf.compat.v1.placeholder(name = "face_norm_r", shape = [1,35709,3], dtype = tf.float32)
+        self.facecolor = tf.compat.v1.placeholder(name = "face_color", shape = [1,35709,3], dtype = tf.float32)
         self.rendered = Render_layer(self.faceshaper,self.facenormr,self.facecolor,self.facemodel,1)
         self.rendered2 = Render_layer2(self.faceshaper,self.facenormr,self.facecolor,self.facemodel,1)
 
-        self.rstimg = tf.placeholder(name = 'rstimg', dtype=tf.uint8)
+        self.rstimg = tf.compat.v1.placeholder(name = 'rstimg', dtype=tf.uint8)
         self.encode_png = tf.image.encode_png(self.rstimg)
         
         self.sess = sess
@@ -44,7 +44,7 @@ class RenderObject(object):
     def save_image(self, final_images, result_output_path):
         result_image = final_images[0, :, :, :]
         result_image = np.clip(result_image, 0., 1.).copy(order='C')
-        result_bytes = sess.run(self.encode_png, {self.rstimg: result_image*255.0})
+        result_bytes = self.sess.run(self.encode_png, {self.rstimg: result_image*255.0})
         with open(result_output_path, 'wb') as output_file:
             output_file.write(result_bytes)
 
@@ -161,17 +161,55 @@ if __name__ == '__main__':
         os.makedirs(save_dir)
     coef_paths = sorted(glob.glob(coef_dir+'/*.npy'))
     L = len(coef_paths)
-    with tf.compat.v1.Session() as sess:
-        render_object = RenderObject(sess)
-        for i in range(L):
-            basen = os.path.basename(coef_paths[i])
-            save = os.path.join(save_dir,basen[:-4]+'.png')
-            if tex2_path == '':
-                # old texture
-                #render_object.render2(coef_path1, coef_paths[i], save)
-                render_object.render2(coef_path1, coef_paths[i], save, pose, relativeframe, i==0, tran=tran)
-            else:
-                # new texture
-                render_object.render2_newtex(coef_path1, coef_paths[i], tex2_path, save, pose, relativeframe, i==0, tran=tran)
-            if i % 100 == 0 and i != 0:
-                print('rendered', i)
+    
+    # 指定使用第一块GPU设备
+    tf.test.is_gpu_available()
+    
+    def sub_proc(start, sub_coef_paths):
+        config = tf.compat.v1.ConfigProto()
+        # 程序最多只能占用指定gpu50%的显存
+        config.gpu_options.per_process_gpu_memory_fraction = 0.8  
+        config.gpu_options.allow_growth = True      #程序按需申请内存
+        with tf.compat.v1.Session(config=config) as sess:
+            render_object = RenderObject(sess)
+            for i in range(len(sub_coef_paths)):
+                pos=start+i
+                coef_file=sub_coef_paths[i]
+                basen = os.path.basename(coef_file)
+                save = os.path.join(save_dir,basen[:-4]+'.png')
+                if tex2_path == '':
+                    # old texture
+                    #render_object.render2(coef_path1, coef_file, save)
+                    render_object.render2(coef_path1, coef_file, save, pose, relativeframe, i==0, tran=tran)
+                else:
+                    # new texture
+                    render_object.render2_newtex(coef_path1, coef_file, tex2_path, save, pose, relativeframe, i==0, tran=tran)
+                if i % 100 == 0 and i != 0:
+                    print('rendered', i)
+
+	# 使用切片功能把大列表分成多个小列表   
+    p_count=16
+    b_size=L//p_count
+    sub_coeffs = [coef_paths[i:i+b_size] for i in range(0, L, b_size)] 
+ 
+    threads = []
+    for i in range(len(sub_coeffs)):
+        t = threading.Thread(target=sub_proc, args=(i*b_size,sub_coeffs[i]))
+        threads.append(t)
+        t.start()
+    for t in threads:
+        t.join()
+            
+        # for i in range(L):
+        #     coef_file=coef_paths[i]
+        #     basen = os.path.basename(coef_file)
+        #     save = os.path.join(save_dir,basen[:-4]+'.png')
+        #     if tex2_path == '':
+        #         # old texture
+        #         #render_object.render2(coef_path1, coef_file, save)
+        #         render_object.render2(coef_path1, coef_file, save, pose, relativeframe, i==0, tran=tran)
+        #     else:
+        #         # new texture
+        #         render_object.render2_newtex(coef_path1, coef_file, tex2_path, save, pose, relativeframe, i==0, tran=tran)
+        #     if i % 100 == 0 and i != 0:
+        #         print('rendered', i)

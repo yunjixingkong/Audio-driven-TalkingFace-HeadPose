@@ -124,7 +124,7 @@ def load_lm3d():
 def load_img(img_path,lm_path):
 
 	image = Image.open(img_path)
-	lm = np.loadtxt(lm_path)
+	lm = np.loadtxt(lm_path).astype('float32')
 
 	return image,lm
 

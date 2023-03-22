@@ -89,5 +89,5 @@ os.remove('datasets/list/testB/%s.txt'%name)
 import shutil
 rootdir = os.path.join(os.getcwd(),'../Deep3DFaceReconstruction/output/render/')
 shutil.rmtree(os.path.join(rootdir, '19_news/'+n+'/bm'))
-shutil.rmtree('arcface/iden_feat'+n)
+shutil.rmtree('arcface/iden_feat/19_news/'+n)
 shutil.rmtree('results/memory_seq_p2p/'+n)

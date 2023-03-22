@@ -6,9 +6,6 @@ from PIL import Image
 import cv2
 import threading
 import timeit
-import random
-from mask import FaceLandmark
-from organ_swich import swap_orgin, swap_orgin_data_with_landmark
 
 import shutil
 
@@ -73,7 +70,7 @@ def merge_with_bigbg(audiobasen,n, output_path=None):
 	# 使用切片功能把大列表分成多个小列表   
 	p_count=20
 	b_size=len(coeffs)//p_count
-	sub_coeffs = [coeffs[i*b_size:(i+1)*b_size] for i in range(len(coeffs)//b_size)]   
+	sub_coeffs = [coeffs[i:i+b_size] for i in range(0, len(coeffs), b_size)]   
 	
 	def merge(start, coeffs):
 		# f = FaceLandmark()
@@ -147,7 +144,6 @@ def merge_with_bigbg(audiobasen,n, output_path=None):
 
 
 				output = cv2.seamlessClone(img1,img,mask,center,cv2.NORMAL_CLONE)
-				print(f"frame {pos}, assing {assigni}, fake center{center}")
     
 				if has_alpha:
 					# 将输出图像分离为其颜色通道
@@ -203,6 +199,7 @@ def merge_with_bigbg(audiobasen,n, output_path=None):
 	# print(command)
 	# os.system(command)
 
+	# command = 'ffmpeg -thread_queue_size 4096 -framerate 25 -i ' + transbigbgdir + '/%05d.png -i '+ in_file + ' -c:v libvpx-vp9 -threads 16 -pix_fmt yuva420p -metadata:s:v:0 alpha_mode="1" -b:v 2M -b:a 16K -y ' + video_name.replace('.mp4','.webm')
 	command = 'ffmpeg -thread_queue_size 4096 -framerate 25 -i ' + transbigbgdir + '/%05d.png -i '+ in_file + ' -c:v libvpx-vp9 -threads 16 -pix_fmt yuva420p -metadata:s:v:0 alpha_mode="1" -b:v 2M -b:a 16K -y ' + video_name.replace('.mp4','.webm')
 	print(command)
 	os.system(command)
