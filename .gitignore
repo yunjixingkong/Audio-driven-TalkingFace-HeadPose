@@ -9,3 +9,13 @@ Models/
 */**/**/**/*.pyc
 */**/**/**/**/*.pyc
 */**/__pycache__
+*.png
+*.html
+*.npy
+*.mat
+frame*.txt
+*.wav
+*.mp4
+*.mov
+*.webm
+*.bin
