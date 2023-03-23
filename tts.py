@@ -73,7 +73,7 @@ def process_all(message):
     audioStorageS3Url = task_dict.get("AudioStorageS3Url")
 
     if len(timbreKey) == 0:
-        timbreKey="zhiyan"
+        timbreKey="aiyan"
 
     audioStorageS3Url=unquote(audioStorageS3Url) 
     inputSsml=unquote(inputSsml)

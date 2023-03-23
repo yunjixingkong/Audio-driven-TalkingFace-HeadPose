@@ -200,7 +200,7 @@ def merge_with_bigbg(audiobasen,n, output_path=None):
 	# os.system(command)
 
 	# command = 'ffmpeg -thread_queue_size 4096 -framerate 25 -i ' + transbigbgdir + '/%05d.png -i '+ in_file + ' -c:v libvpx-vp9 -threads 16 -pix_fmt yuva420p -metadata:s:v:0 alpha_mode="1" -b:v 2M -b:a 16K -y ' + video_name.replace('.mp4','.webm')
-	command = 'ffmpeg -thread_queue_size 4096 -framerate 25 -i ' + transbigbgdir + '/%05d.png -i '+ in_file + ' -c:v libvpx-vp9 -threads 16 -pix_fmt yuva420p -metadata:s:v:0 alpha_mode="1" -b:v 2M -b:a 16K -y ' + video_name.replace('.mp4','.webm')
+	command = 'ffmpeg -thread_queue_size 4096 -framerate 25 -i ' + transbigbgdir + '/%05d.png -i '+ in_file + ' -c:v libvpx -pix_fmt yuva420p -cpu-used 8 -auto-alt-ref 0 -metadata:s:v:0 alpha_mode="1" -b:v 2M -b:a 16K -y ' + video_name.replace('.mp4','.webm')
 	print(command)
 	os.system(command)
 
@@ -209,7 +209,7 @@ def merge_with_bigbg(audiobasen,n, output_path=None):
 	shutil.rmtree(sample_dir2)
 	elapsed = timeit.default_timer() - start_time  # 计算函数执行时长 
 	print(f"merge_with_bigbg elapsed {elapsed}")
-	print('saved to', video_name.replace('.mp4','.mov'))
+	print('saved to', video_name.replace('.mp4','.webm'))
 
 audiobasen=sys.argv[1]
 n = int(sys.argv[2])

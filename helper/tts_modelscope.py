@@ -4,15 +4,19 @@ from modelscope.utils.constant import Tasks
 
 
 models = {
-    "zhiyan": "damo/speech_sambert-hifigan_tts_zhiyan_emo_zh-cn_16k",
-    "zhitian": "damo/speech_sambert-hifigan_tts_zhitian_emo_zh-cn_16k",
+    "aibei": "damo/speech_sambert-hifigan_tts_zhibei_emo_zh-cn_16k",
+    "aitian": "damo/speech_sambert-hifigan_tts_zhitian_emo_zh-cn_16k",
+    "aiyan": "damo/speech_sambert-hifigan_tts_zhiyan_emo_zh-cn_16k",
+    "aizhe": "damo/speech_sambert-hifigan_tts_zhizhe_emo_zh-cn_16k"
 }
 
 class ModelScopeTTS():
     def __init__(self) -> None:
         self.models = {
-            "zhiyan": pipeline(task=Tasks.text_to_speech, model="damo/speech_sambert-hifigan_tts_zhiyan_emo_zh-cn_16k"),
-            "zhitian": pipeline(task=Tasks.text_to_speech, model="damo/speech_sambert-hifigan_tts_zhitian_emo_zh-cn_16k"),
+            "aibei": pipeline(task=Tasks.text_to_speech, model="damo/speech_sambert-hifigan_tts_zhibei_emo_zh-cn_16k"),
+            "aitian": pipeline(task=Tasks.text_to_speech, model="damo/speech_sambert-hifigan_tts_zhitian_emo_zh-cn_16k"),
+            "aiyan": pipeline(task=Tasks.text_to_speech, model="damo/speech_sambert-hifigan_tts_zhiyan_emo_zh-cn_16k"),
+            "aizhe": pipeline(task=Tasks.text_to_speech, model="damo/speech_sambert-hifigan_tts_zhizhe_emo_zh-cn_16k"),
         }
 
     def infer(self, timbre, text, output):
