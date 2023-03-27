@@ -104,6 +104,7 @@ audioepoch=99
 audiobasen=sys.argv[1]
 n = int(sys.argv[2])#person id
 output_path=sys.argv[4]
+proportion=float(sys.argv[5])
 
 if __name__ == "__main__":
 	start_time = time.time()
@@ -173,7 +174,7 @@ if __name__ == "__main__":
 	# os.remove(video_name)
 	# print('saved to',video_name.replace('.mp4','.mov'))
 
-	merge_with_bigbg(audiobasen,n, output_path)
+	merge_with_bigbg(audiobasen,n, output_path, proportion)
 
 	# 清理文件
 	os.remove('../../render-to-video/datasets/list/testSingle/%s.txt'%seq)

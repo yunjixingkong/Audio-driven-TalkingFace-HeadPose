@@ -49,8 +49,12 @@ def download_wget(url, cache_path):
 def http_report(url:str, data):
     headers = {'Content-Type': 'application/json'}
     datas = json.dumps(data)
-    r = requests.post(url=url, data=datas, headers=headers)
-    logger.info("new task report rsp: {}".format(r.text))
+    try:
+        r = requests.post(url=url, data=datas, headers=headers, timeout=5)
+    except requests.exceptions.Timeout:
+        logger.info("req timeout ")
+    else:
+        logger.info("new task report rsp: {}".format(r.text))
 
 
 def process_all(message):

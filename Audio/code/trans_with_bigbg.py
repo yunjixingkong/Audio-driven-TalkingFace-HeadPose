@@ -9,11 +9,12 @@ import timeit
 
 import shutil
 
-def merge_with_bigbg(audiobasen,n, output_path=None):
+def merge_with_bigbg(audiobasen,n, output_path=None, proportion=None):
 	start_time = timeit.default_timer()  # 设置计时器 
 	start=0;ganepoch=60;audioepoch=99
 	seamlessclone = 1
 	person = str(n)
+	print(f"merge_with_bigbg with proportion {proportion}")
 	if os.path.exists(os.path.join('../audio/',audiobasen+'.wav')):
 		in_file = os.path.join('../audio/',audiobasen+'.wav')
 	elif os.path.exists(os.path.join('../audio/',audiobasen+'.mp3')):
@@ -122,7 +123,9 @@ def merge_with_bigbg(audiobasen,n, output_path=None):
 				# center = (t0+int(img1.shape[0]/2),t1+int(img1.shape[1]-h2/5))
 
 				# 45/100张脸融合
-				s=0.375
+				s=proportion
+				if s is None:
+					s=0.35
 				mask = np.ones(img1.shape,img1.dtype) * 255
 				mask[0:int(h2*(1-s)),:,0:3] = 0
 				center = (t0+int(img1.shape[0]/2),t1+int(img1.shape[1]-h2*(s/2)))

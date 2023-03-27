@@ -53,8 +53,12 @@ def download_wget(url, cache_path):
 def http_report(url:str, data):
     headers = {'Content-Type': 'application/json'}
     datas = json.dumps(data)
-    r = requests.post(url=url, data=datas, headers=headers)
-    logger.info("new task report rsp: {}".format(r.text))
+    try:
+        r = requests.post(url=url, data=datas, headers=headers, timeout=5)
+    except requests.exceptions.Timeout:
+        logger.info("req timeout ")
+    else:
+        logger.info("new task report rsp: {}".format(r.text))
 
 
 def process_all(message):
@@ -72,6 +76,7 @@ def process_all(message):
     logger.info("new task report start: {}".format(complet_req))
     taskId = task_dict.get("TaskId")
     virtualmanKey = task_dict.get("VirtualmanKey")
+    proportion= task_dict.get("Proportion")
     inputSsml = task_dict.get("InputSsml")
     timbreKey = task_dict.get("TimbreKey")
     videoFormat = task_dict.get("VideoFormat")
@@ -80,7 +85,7 @@ def process_all(message):
     videoStorageS3Url = task_dict.get("VideoStorageS3Url")
     subtitleStorageS3Url = task_dict.get("SubtitleStorageS3Url")
     speed = task_dict.get("Speed")
-    
+    print(f"params {proportion}")
     audio = ""
     
     if len(driverType) == 0:
@@ -93,14 +98,12 @@ def process_all(message):
     if driverType != TEXT:
         audio = download_wget(inputAudioUrl, "./Audio/audio") 
     
-
-    
     inputAudioUrl=unquote(inputAudioUrl) 
     videoStorageS3Url=unquote(videoStorageS3Url) 
     subtitleStorageS3Url=unquote(subtitleStorageS3Url)
     inputSsml=unquote(inputSsml)
     video=os.path.join(audio_cache, f"{taskId}.mp4")
-    command=f"cd ./Audio/code; python prod.py {os.path.basename(audio)[:-4]} {virtualmanKey} 0 {video}"
+    command=f"cd ./Audio/code; python prod.py {os.path.basename(audio)[:-4]} {virtualmanKey} 0 {video} {proportion}"
     print(command)
     os.system(command)
 
