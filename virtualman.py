@@ -110,11 +110,11 @@ def process_all(message):
         remote_url=videoStorageS3Url
     else:
         try:
-            remote_url=_OSSClient.upload(bucket_name=oss.get("Bucket"), object_name=f"{taskId}.mp4", file_path=video)
+            remote_url=_OSSClient.upload(bucket_name=oss.get("Bucket"), object_name=f"{taskId}.webm", file_path=video)
             if oss.get("Secure"):
-                remote_url = "https://%s/%s/%s" % (oss.get("Host"), oss.get("Bucket"), f"{taskId}.mp4")
+                remote_url = "https://%s/%s/%s" % (oss.get("Host"), oss.get("Bucket"), f"{taskId}.webm")
             else:
-                remote_url = "http://%s/%s/%s" % (oss.get("Host"), oss.get("Bucket"), f"{taskId}.mp4")
+                remote_url = "http://%s/%s/%s" % (oss.get("Host"), oss.get("Bucket"), f"{taskId}.webm")
                 
         except Exception as result:
             logger.exception("gan exception {}".format(result))
