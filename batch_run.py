@@ -1,14 +1,19 @@
 import os
 import time
+import sys
 
-n = 2602 #person id
+video=sys.argv[1]
+n=int(os.path.splitext(video)[0])
+# n=int(sys.argv[1])
+
+# n = 1 #person id
 gpu = 0
 audio = 'shengma'
 
 start_time = time.time()  
 
 ## finetuning on a target person
-cmd1='cd Data/; python extract_frame1.py %d.mp4' % n
+cmd1='cd Data/; python extract_frame_alpha.py %s' % video
 os.system(cmd1)
 first=time.time() - start_time
 

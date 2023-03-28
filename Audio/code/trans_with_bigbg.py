@@ -141,20 +141,37 @@ def merge_with_bigbg(audiobasen,n, output_path=None, proportion=None):
 				has_alpha = img.shape[2] == 4
 				if has_alpha:
 					# 从源图像中提取alpha通道
-					src_alpha = img[:,:,3]
+					# src_alpha = img[:,:,3]
+					# 创建图像透明区域的掩码
+					mask1 = img[:, :, 3] == 0
+					img[mask1] = [0, 255, 0, 255]
+
 					# 从源图像中删除alpha通道
-					img = img[:,:,0:3]
+					img = img[:,:,:3]
 
 
 				output = cv2.seamlessClone(img1,img,mask,center,cv2.NORMAL_CLONE)
-    
+
 				if has_alpha:
-					# 将输出图像分离为其颜色通道
-					b, g, r = cv2.split(output)
-					a = np.load('../../Data/'+person+'/frame%d.npy'%assigni)
-					a = 255-a
-					# a = src_alpha
-					output = cv2.merge((b, g, r, a))
+					mask_pil = np.load('../../Data/'+person+'/frame%d.npy'%assigni)
+					mask_cv2=np.logical_not(mask_pil)
+					output = cv2.cvtColor(output, cv2.COLOR_RGB2RGBA)
+					output[mask_cv2==0] = 0
+ 
+				# if has_alpha:
+				# 	# 将输出图像分离为其颜色通道
+				# 	b, g, r = cv2.split(output)
+				# 	a = np.load('../../Data/'+person+'/frame%d.npy'%assigni)
+				# 	a = 255-a
+				# 	# 定义腐蚀核
+				# 	kernel = np.ones((3,3), np.uint8)
+				# 	# 对掩模进行腐蚀操作
+				# 	a = cv2.erode(a, kernel, iterations=2)
+				# 	# output=output[a==255]
+				# 	output[a<255] = 0 
+
+				# 	# a = src_alpha
+				# 	output = cv2.merge((b, g, r, a))
 
 				# data_tmp=np.load(png_path.replace(".png", ".npy"), allow_pickle=True).item()
 				# if data_tmp["close"]:
